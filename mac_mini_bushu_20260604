@@ -133,7 +133,6 @@ ssh -T git@github.com
 # VS 打开项目文件夹→左侧源代码管理→提交代码
 # 远程添加仓库：git remote add origin git@github.com:账号/仓库.git
 # 点击推送即可上传代码到 GitHub。
-
 # SSH 已经测通了，只需要把远程地址换成 SSH 格式即可
 # 你用户名：fangyiluckyegg，把下面命令依次在项目目录执行
 # 1、先查看当前远程地址【在Vscode的终端界面中输入】
@@ -144,7 +143,6 @@ git remote -v
 git remote set-url origin git@github.com:fangyiluckyegg/你的仓库名.git
 # 3、再次核对是否修改成功
 # 输出变成 git@github.com:fangyiluckyegg/你的仓库名.git 就改好了
-
 # 4、去 GitHub 官网 新建一个仓库，名字必须叫：develop（必须一模一样，大小写也要一样）
 # 新建仓库步骤（超简单）
 # 打开 GitHub → 右上角 + 号 → New repository
