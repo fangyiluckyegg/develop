@@ -1,9 +1,3 @@
-# 一、云应用服务器
-# 1.硬件：腾讯云轻量应用服务器（2核4G 6M 70G 月限流600G）
-# 2.系统：Ubuntu 22.04 server 64bit-改成windows server 2005
-# 3.功能：域名承载、frp转发
-# 4.拓展：后续可以试试Hermes
-
 # 二、家庭服务器
 # 1.硬件：mac mini m2 16+1T
 # 2.系统：macOS Sonoma 14.8.7
@@ -62,21 +56,9 @@
 # （3）服务状态巡检：定时检测接口连通性、数据库运行状态，异常即时告警
 # （4）日常维护：日志管理 统一日志输出目录，自动切割归档，留存故障排查记录；定期清理冗余日志、校验备份文件（配置文件、docker-compose.yml 做好备份）、优化数据库索引、排查访问异常
 
-# 三、家庭开发电脑
-# 1.硬件：i7-8700K、16GB DDR4 3000MHz、RTX 2070S、三星980 m.2 Nvme 1T、3T+1T 机械盘
-# 2.系统：win11
-# 3.功能：
-#（1）办公：WPS、百度网盘、印象笔记、微信
-#（2）开发：VScode、微信开发者工具、git、cherry studio、Utool、Workbuddy、开发环境（Docker Desktop）、workspace
-#（3）娱乐：暴雪、腾讯
-# 4.拓展：
 
-# 四、个人工作笔记本
-# 1.硬件：AMD Ryzen 5 PRO 4650U with Radeon Graphics 2.10 GHz,机带 RAM 8.00 GB (7.23 GB 可用);500G 硬盘
-# 2.系统：win11
-# 3.功能：
-#（1）办公：WPS、百度网盘、印象笔记、微信
-#（2）开发：VScode、微信开发者工具、git、cherry studio、Utool、Workbuddy、开发环境（Docker Desktop）、workspace
+
+
 
 # 安装GIT
 # Git Windows 高速下载 + 安装（官网打不开用国内镜像，适配 VSCode）
