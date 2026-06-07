@@ -1,11 +1,9 @@
-# 一、云应用服务器
-# 1.硬件：腾讯云轻量应用服务器（2核4G 6M 70G 月限流600G）【118.25.129.219】
-# 2.系统：Ubuntu 22.04 server 64bit
-# 3.功能：域名承载、frp转发
-# 4.拓展：后续可以试试Hermes
-frps在root用户下
-ssh ubuntu@118.25.129.219 【!+XX笔名+XX普通密码】
 
+
+
+Hermes
+如何安装技能
+如何设置定时任务
 
 
 # 应用一：自动跑湖州市区生活消费优惠信息日报项目
@@ -24,13 +22,21 @@ ssh ubuntu@118.25.129.219 【!+XX笔名+XX普通密码】
 - 确保邮件发送成功（收件人和所有抄送人都收到）
 - 所有步骤在同一会话中完成
 
-
 每日新闻定时播报案例：https://clawhub.ai/kenxcomp/ai-news-collectors
 跨平台内容搜索案例：一句话搜索B站、抖音、小红书、GitHub、Twitter等20+平台的内容，不用逐个切换。项目：https://github.com/runningZ1/union-search-skill
 实现步骤：安装union-search-skill、配置需要搜索的平台、直接在OpenClaw里提问，自动聚合结果。 
 -->
 
-# 重新整理一遍需求，具体如下：
+
+# 云应用服务器规划设计
+# 1.硬件：腾讯云轻量应用服务器（2核4G 6M 70G 月限流600G）【118.25.129.219】
+# 2.系统：Ubuntu 22.04 server 64bit
+# 3.功能：域名承载、frp转发
+# 4.拓展：后续可以试试Hermes
+frps在root用户下
+ssh ubuntu@118.25.129.219 【!+XX笔名+XX普通密码】
+
+# 配置方案设计：重新整理一遍需求，具体如下：
 我有一台腾讯云轻量应用服务器（2核4G 6M 70G），系统为Ubuntu 22.04 server 64bit
 当前主要功能是作为frp转发的frps服务器端
 现计划通过docker来安装配置Hermes_agent，后续准备开发运行一些基于大模型API的AI任务
@@ -39,10 +45,7 @@ ssh ubuntu@118.25.129.219 【!+XX笔名+XX普通密码】
 第三打开Dashboard 后台配置面板
 请给出一套完整高效稳定的安装和配置方案
 
-
-
-
-方案 1：华为云国内源（之前删过，现在重新拉 v2026.5.16，国内高速）
+# 具体配置方案
 # 一、彻底清空所有旧东西（必做）
 sudo docker rm -f hermes 2>/dev/null
 sudo docker system prune -a -f
@@ -75,12 +78,11 @@ exit
 docker ps
 看到 hermes 容器 UP 状态 = 正在运行！
 
-# 五、后续配置双模型、关闭 webui、校验配置（不变）
+# 五、配置模型
 # 进入容器初始化 Hermes
 docker exec -it hermes bash
 # 容器内执行（一键创建目录 + 写入正确配置）
 mkdir -p /root/.hermes
-
 cat > /opt/data/config.yaml << 'EOF'
 providers:
   mimo:
@@ -97,23 +99,16 @@ EOF
 # 六、启动 9119 Dashboard 后台（仅启动网页配置）
 # 退出容器
 exit
-docker exec -d hermes /opt/hermes/.venv/bin/hermes dashboard --host 0.0.0.0 --port 9119 --insecure
-
-# 杀掉旧的占用端口的进程
-pkill -f "hermes dashboard"
 # 启动 9119 面板（最终版）
 docker exec -d hermes /opt/hermes/.venv/bin/hermes dashboard --host 0.0.0.0 --port 9119 --insecure
 
-
+# 附：其他命令
 # 命令行测试聊天（TUI 界面）
 docker exec -it hermes /opt/hermes/.venv/bin/hermes --tui
 输入 /model 可随时切换双模型
-
 # 查看完整配置
 docker exec -it hermes hermes config show
-
 # 重启容器（如需）
 docker restart hermes
-
-
-Hermes Agent Dashboard 后台如何配置自定义模型
+# 杀掉旧的占用端口的进程
+pkill -f "hermes dashboard"

@@ -1,0 +1,92 @@
+# 三、家庭开发电脑
+# 1.硬件：i7-8700K、16GB DDR4 3000MHz、RTX 2070S、三星980 m.2 Nvme 1T、3T+1T 机械盘
+# 2.系统：win11
+# 3.功能：
+#（1）办公：WPS、百度网盘、印象笔记、微信
+#（2）开发：VScode、微信开发者工具、git、cherry studio、Utool、Workbuddy、开发环境（Docker Desktop）、workspace
+#（3）娱乐：暴雪、腾讯
+# 4.拓展：
+
+
+
+
+
+# 一、安装GIT
+# Git Windows 高速下载 + 安装（官网打不开用国内镜像，适配 VSCode）
+# 一、国内高速下载（优先，不用进 git 官网）
+# 清华镜像（推荐）：https://mirrors.tuna.tsinghua.edu.cn/git-for-windows/git/
+# 打开链接 → 选最新版本文件夹 → 下载 Git-xxx-64-bit.exe（64 位电脑通用）
+# 二、安装GIT
+# 双击 exe 安装包，一路 Next，只注意 3 个关键页面：
+# 1. 组件页面
+# 默认勾选全部，额外勾选：On the Desktop（桌面快捷方式），Next
+# 直接选：Use Visual Studio Code as Git's default editor
+# 2. PATH 环境配置（最关键！！适配 VSCode）
+# 选择：Git from the command line and also from 3rd-party software
+# 作用：CMD、PowerShell、VSCode 全部能调用 git 命令，选错 VS 会找不到 Git
+# 3. 换行符设置（默认即可）
+# Checkout Windows-style, commit Unix-style line endings → Next
+# 剩余页面全部默认 Next 直到 Install 完成
+# 三、安装完成验证
+# 打开 CMD/VSCode 终端 `Ctrl+``，输入：
+git --version
+# 输出版本号 = 安装成功；提示不是命令 = PATH 选错，重装选上面第二项
+
+# 完整配置 GitHub（分 3 大步：本地 Git 配置→SSH 免密 / HTTPS 令牌→VSCode 绑定，官网打不开也能用）
+# 一、配置 Git 账号（绑定 GitHub 必备）
+# 用户名=你的GitHub昵称
+git config --global user.name "fangyiluckyegg"
+# 邮箱=注册GitHub的邮箱
+git config --global user.email "luckyegg@139.com"
+# 查看是否配置成功
+git config --global --list
+# 结果显示如下
+# C:\Users\user>git config --global --list
+# core.editor="D:\Program Files (x86)\Microsoft VS Code\bin\code" --wait
+# user.name=fangyiluckyegg
+# user.email=luckyegg@139.com
+# 二、SSH 免密连接（首选，以后推送代码不用输账号密码）
+# 1. 生成密钥（进入CMD 界面）
+ssh-keygen -t ed25519 -C "luckyegg@139.com"
+# 连续3 次回车（不设置密钥密码，默认保存路径）。
+# 2. 复制公钥（进入CMD 界面）
+type C:\Users\user\.ssh\id_ed25519.pub
+# 就能显示公钥内容。
+# 把输出一整串全部复制（ssh-ed25519 开头，邮箱结尾，不能漏字符）。
+# ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF5GBmacGmpLiVBycj2Qbn49XmzAUgiJdDJD/F+boKaq luckyegg@139.com
+# 3. 粘贴公钥到 GitHub（官网打不开临时办法：手机流量开 github 网页）
+# 手机开热点，电脑切热点打开 github → 右上角头像→Settings
+# 左侧SSH and GPG keys→New SSH key
+# Title 随便填（如Windows本机），Key 框粘贴刚才复制的公钥→Add SSH key。
+# 保存，然后测试：
+ssh -T git@github.com
+# 输入 yes 然后按回车！出现 Hi xxx! You've successfully authenticated 就成功了！
+# 三、VSCode 绑定 GitHub
+# SSH 配好后直接用。SSH 配置成功后，VSCode 拉取 / 推送自动免密，不用额外登录账号：
+# VS 打开项目文件夹→左侧源代码管理→提交代码
+# 远程添加仓库：git remote add origin git@github.com:账号/仓库.git
+# 点击推送即可上传代码到 GitHub。
+# SSH 已经测通了，只需要把远程地址换成 SSH 格式即可
+# 你用户名：fangyiluckyegg，把下面命令依次在项目目录执行
+# 1、先查看当前远程地址【在Vscode的终端界面中输入】
+git remote -v
+# 能看到现在是 https://github.com/fangyiluckyegg/xxx.git
+# 2、一键改成 SSH 链接（核心命令）
+# 把仓库名替换成你的仓库名字【在Vscode的终端界面中输入】
+git remote set-url origin git@github.com:fangyiluckyegg/你的仓库名.git
+# 3、再次核对是否修改成功
+# 输出变成 git@github.com:fangyiluckyegg/你的仓库名.git 就改好了
+# 4、去 GitHub 官网 新建一个仓库，名字必须叫：develop（必须一模一样，大小写也要一样）
+# 新建仓库步骤（超简单）
+# 打开 GitHub → 右上角 + 号 → New repository
+# Repository name 填：develop
+# 下面的 Add README、.gitignore、License 都不要勾！
+# 点 Create repository
+# 创建好后，回到 VSCode 直接执行：
+git push -u origin main
+# 马上就成功！
+# 5、以后你只需要这样用（超级简单）
+# 改完代码
+# 点左侧 源代码管理
+# 输入备注 → 提交
+# 点 推送（Push）
