@@ -1,11 +1,4 @@
 
-
-
-Hermes
-如何安装技能
-如何设置定时任务
-
-
 # 应用一：自动跑湖州市区生活消费优惠信息日报项目
 <!-- 
 （1）湖州市区生活消费优惠信息日报项目
@@ -16,7 +9,7 @@ Hermes
 - 端口：587
 - 发件人：1282864@qq.com
 - 收件人：1282864@qq.com
-- 抄送：luckyegg@139.com, luckymilk@139.com
+- 抄送：luckyegg@139.com, luckymilk@139.com, crh123dexiaohao@163.com
 - 授权码：qmwzuortftapcbcb
 - 邮件主题：湖州市区生活消费优惠信息日报_YYYY-MM-DD
 - 确保邮件发送成功（收件人和所有抄送人都收到）
@@ -26,6 +19,41 @@ Hermes
 跨平台内容搜索案例：一句话搜索B站、抖音、小红书、GitHub、Twitter等20+平台的内容，不用逐个切换。项目：https://github.com/runningZ1/union-search-skill
 实现步骤：安装union-search-skill、配置需要搜索的平台、直接在OpenClaw里提问，自动聚合结果。 
 -->
+
+
+# 一、Hermes 如何安装技能
+# 第一步：把技能文件拷入目标位置【把本地技能拷贝到腾讯云root登录界面的文件ftp中】
+root@VM-16-13-ubuntu:~# docker cp promotions-collectors.zip hermes:/root/
+Successfully copied 6.14kB to hermes:/root/
+
+# 第二步：进入容器，解压 ZIP
+# 进入交互式容器终端
+docker exec -it hermes bash
+# 进入 /root 目录（zip 在这里）
+cd /root
+cd /root/.hermes/skills/
+# 解压到技能总目录 /root/.hermes/skills/
+# 需要先安装 unzip（容器内执行）
+# 你现在已经在容器里了，直接运行：
+apt update && apt install -y unzip
+# 再解压你的技能 ZIP（直接运行）
+unzip -o promotions-collectors.zip -d /root/.hermes/skills/mytools
+# 修复权限（必须做，否则技能加载失败）
+chmod -R 755 /root/.hermes/skills/
+# 生效技能
+mkdir -p /opt/data/skills/mytools
+cp -r /root/.hermes/skills/mytools/promotions-collectors /opt/data/skills/mytools
+docker restart hermes
+#查看是否安装成功
+docker exec -it hermes bash
+/opt/hermes/.venv/bin/hermes skills list
+/skills list
+
+docker exec -it hermes /opt/hermes/.venv/bin/hermes --tui
+
+# 二、如何设置定时任务
+
+
 
 
 # 云应用服务器规划设计
@@ -112,3 +140,5 @@ docker exec -it hermes hermes config show
 docker restart hermes
 # 杀掉旧的占用端口的进程
 pkill -f "hermes dashboard"
+
+118.25.129.219:9119
