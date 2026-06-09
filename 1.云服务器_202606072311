@@ -20,6 +20,19 @@
 实现步骤：安装union-search-skill、配置需要搜索的平台、直接在OpenClaw里提问，自动聚合结果。 
 -->
 
+ssh ubuntu@118.25.129.219
+docker exec -it hermes /opt/hermes/.venv/bin/hermes --tui
+
+
+增加自定义模型
+docker exec -it hermes bash
+/opt/hermes/.venv/bin/hermes model
+然后不断回车
+[K]eep [R]eplace [c]lear (default K):r
+选择目标新模型即可
+
+
+
 
 # 一、Hermes 如何安装技能
 # 第一步：把技能文件拷入目标位置【把本地技能拷贝到腾讯云root登录界面的文件ftp中】
@@ -49,9 +62,9 @@ docker exec -it hermes bash
 /opt/hermes/.venv/bin/hermes skills list
 /skills list
 
-docker exec -it hermes /opt/hermes/.venv/bin/hermes --tui
-
 # 二、如何设置定时任务
+
+
 
 
 
