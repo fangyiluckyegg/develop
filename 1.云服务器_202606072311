@@ -2,9 +2,9 @@
 # 应用一：自动跑湖州市区生活消费优惠信息日报项目
 <!-- 
 （1）湖州市区生活消费优惠信息日报项目
-请执行以下完整任务：
-1.使用 promotions-collector skill 收集当日湖州市区的生活消费优惠信息并生成样式美观的HTML格式日报
-2.使用PowerShell发送邮件
+1.生成定时项目“湖州市区生活消费优惠信息日报项目”，在每周五上午9点30分执行。该项目具体需执行以下完整任务：
+2.使用 promotions-collector skill 收集当日湖州市区的生活消费优惠信息并生成样式美观的HTML格式日报
+3.使用PowerShell发送邮件
 - SMTP服务器：smtp.qq.com
 - 端口：587
 - 发件人：1282864@qq.com
@@ -15,6 +15,7 @@
 - 确保邮件发送成功（收件人和所有抄送人都收到）
 - 所有步骤在同一会话中完成
 
+
 每日新闻定时播报案例：https://clawhub.ai/kenxcomp/ai-news-collectors
 跨平台内容搜索案例：一句话搜索B站、抖音、小红书、GitHub、Twitter等20+平台的内容，不用逐个切换。项目：https://github.com/runningZ1/union-search-skill
 实现步骤：安装union-search-skill、配置需要搜索的平台、直接在OpenClaw里提问，自动聚合结果。 
@@ -24,15 +25,25 @@ ssh ubuntu@118.25.129.219
 docker exec -it hermes /opt/hermes/.venv/bin/hermes --tui
 
 
-增加自定义模型
+# 增加自定义模型
 docker exec -it hermes bash
 /opt/hermes/.venv/bin/hermes model
 然后不断回车
 [K]eep [R]eplace [c]lear (default K):r
 选择目标新模型即可
 
+# 想保留任务，又想退出 TUI
+方法 A：在容器里先把终端 “detach”（推荐）
+Ctrl+P → 松开 → Ctrl+Q
 
+# 常用管理命令（TUI 里直接输入）
+/cron list          # 列出所有定时任务（带 ID）
+/cron run <id>      # 立即手动跑一次
+/cron pause <id>    # 暂停
+/cron resume <id>   # 恢复
+/cron delete <id>   # 删除
 
+/cron run 907daa773488
 
 # 一、Hermes 如何安装技能
 # 第一步：把技能文件拷入目标位置【把本地技能拷贝到腾讯云root登录界面的文件ftp中】
