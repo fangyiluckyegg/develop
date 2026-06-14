@@ -22,6 +22,7 @@
 -->
 
 ssh ubuntu@118.25.129.219
+docker exec -it hermes bash
 docker exec -it hermes /opt/hermes/.venv/bin/hermes --tui
 
 
@@ -45,6 +46,12 @@ Ctrl+P → 松开 → Ctrl+Q
 
 # 标记任务按计划启动
 /cron run 907daa773488
+
+# 让网关进程持续运行，推荐用 systemd 做守护进程，开机自启、崩溃自动恢复：
+hermes gateway install --system
+# 后台ticker启动独立进程，每60秒自动hermes cron tick【cron-ticker脚本：已启动(PID91989,每60 s tick)】
+# 注意：当前在Docker容器中运行，ticker生命周期绑定本TUI会话。如果重启容器需要重新启动ticker脚本（或配置Docker--restart unless-stopped+启动时自动运行ticker)。
+
 # 推出tui,立即执行启动看看
 docker exec -it hermes /opt/hermes/.venv/bin/hermes cron tick
 
