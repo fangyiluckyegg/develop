@@ -11,9 +11,9 @@ WorkSpace
 ├─ Ai_Skills                # AI Skill开发
 ├─ Test_Practices           # 算法练习
 ├─ Niu_Txl                  # 牛同学录项目
-├─ Bibutong              # AI项目开发
+├─ Bibutong                 # AI项目开发
 │  ├─ Bibutong-Pc           # 本地电脑-python+ollama+专用向量库
-│  ├─ Bibutong-Net           # 单位内网-前端-速搭+API+ora数据库-后端-springboot+ollama+专用向量库
+│  ├─ Bibutong-Net          # 单位内网-前端-速搭+API+ora数据库-后端-springboot+ollama+专用向量库
 ├─ Xbox                     # 百宝箱项目
 ├─ Finds-Fault              # 微信找茬项目
 ├─ Student-Growth-Record    # 微信学生成长记录项目
