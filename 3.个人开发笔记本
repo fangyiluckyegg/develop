@@ -9,11 +9,30 @@
 开发目录安排
 WorkSpace
 ├─ Ai_Skills                # AI Skill开发
+│  ├─ 湖州生活消费优惠信息日报【已部署】
 ├─ Test_Practices           # 算法练习
-├─ Niu_Txl                  # 牛同学录项目
+├─ Niu_Txl                  # 牛同学录项目【已部署】
+├─ Xbox                     # 百宝箱项目【待完善】
+│  ├─                       # 通用容器版Bibutong【待开发】
+│  ├─                       # 测网速项目（小程序版）【待开发】
+├─ Student-Growth-Record    # 微信学生成长记录项目【待完善】
+备用
 ├─ Bibutong                 # AI项目开发
 │  ├─ Bibutong-Pc           # 本地电脑-python+ollama+专用向量库
 │  ├─ Bibutong-Net          # 单位内网-前端-速搭+API+ora数据库-后端-springboot+ollama+专用向量库
-├─ Xbox                     # 百宝箱项目
 ├─ Finds-Fault              # 微信找茬项目
-├─ Student-Growth-Record    # 微信学生成长记录项目
+
+
+（1）反诈预警信息整合日报项目
+1.生成定时项目“反诈预警信息整合日报项目”，在每天上午9点30分执行。该项目具体需执行以下完整任务：
+2.搜索xuxin@zj.chinamobile.com的收件箱，找到发件人huzcpush在昨天+今天发送的邮件，整理汇总摘要信息并生成样式美观的HTML格式日报
+3.使用 Python + SSL (SMTP_SSL) 发送邮件
+- SMTP服务器：smtp.zj.chinamobile.com
+- 端口：465
+- 发件人：xuxin@zj.chinamobile.com
+- 收件人：xuxin@zj.chinamobile.com
+- 抄送：xuxin@zj.chinamobile.com
+- 授权码：44217FDB7063FE2E1700
+- 邮件主题：反诈预警信息整合日报 YYYY-MM-DD
+- 确保邮件发送成功（收件人和所有抄送人都收到）
+- 所有步骤在同一会话中完成
