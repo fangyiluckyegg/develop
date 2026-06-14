@@ -4,3 +4,14 @@
 # 3.功能：
 #（1）办公：WPS、百度网盘、印象笔记、微信
 #（2）开发：VScode、微信开发者工具、git、cherry studio、Utool、Workbuddy、开发环境（Docker Desktop）、workspace
+
+
+开发目录安排
+WorkSpace
+├─ Ai_Projects              # AI项目开发
+├─ Ai_Skills                # AI Skill开发
+├─ Test_Practices           # 算法练习
+├─ Niu_Txl                  # 牛同学录项目
+├─ Xbox                     # 百宝箱项目
+├─ Finds-Fault              # 微信找茬项目
+├─ Student-Growth-Record    # 微信学生成长记录项目
