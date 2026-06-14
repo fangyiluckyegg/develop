@@ -43,7 +43,11 @@ Ctrl+P → 松开 → Ctrl+Q
 /cron resume <id>   # 恢复
 /cron delete <id>   # 删除
 
+# 标记任务按计划启动
 /cron run 907daa773488
+# 推出tui,立即执行启动看看
+docker exec -it hermes /opt/hermes/.venv/bin/hermes cron tick
+
 
 # 一、Hermes 如何安装技能
 # 第一步：把技能文件拷入目标位置【把本地技能拷贝到腾讯云root登录界面的文件ftp中】
@@ -165,4 +169,4 @@ docker restart hermes
 # 杀掉旧的占用端口的进程
 pkill -f "hermes dashboard"
 
-118.25.129.219:9119
+ssh 118.25.129.219:9119
