@@ -1,5 +1,4 @@
-ssh ubuntu@118.25.129.219
-docker exec -it hermes bash
+ssh ubuntu@118.25.129.219【!+XX笔名+XX普通密码】
 docker exec -it hermes /opt/hermes/.venv/bin/hermes --tui
 
 
