@@ -83,9 +83,39 @@ docker exec -it hermes bash
 第三打开Dashboard 后台配置面板
 请给出一套完整高效稳定的安装和配置方案
 
-二、域名承载配置（待补充）
+# 二、域名承载配置（待补充）
 
-三、frp转发（frps在root用户下）配置
+# 三、frp转发（frps在root用户下）配置
+# （一）在 https://github.com/fatedier/frp/releases 下载frp
+# （二）安装配置linux服务端并配置自启动
+# 1.下载好后【按服务器类别和版本下载】，编辑好frps.toml【有时候竟然有编辑格式的问题，换个原版格式改写可能就对了】
+# 2.启动服务：华为云中用控制台网页版界面或用Cloudshell远程登陆云主机：界面中新建frp文件夹+上传文件所需文件【win方法：然后控制台切到当前目录，输入启动指令frps -c frps.toml】
+# 3.云服务器安全组和防火墙+宝塔面板打开端口：在出入规则上打开相应端口
+# 4.测试网络通不通：curl 114.116.108.203:7000
+# 5.配置自启动：
+# （1）新建服务启动文件：sudo nano /etc/systemd/system/frps.service
+# （2）编辑服务启动该文件
+[Unit]
+Description=frp server service
+After=network.target syslog.target
+Wants=network.target
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/local/bin/frp/frps -c /usr/local/bin/frp/frps.toml
+Restart=on-failure
+RestartSec=5s
+[Install]
+WantedBy=multi-user.target
+（3）启动服务
+sudo systemctl daemon-reload
+sudo systemctl start frps.service
+sudo systemctl enable frps.service
+（4）重启服务
+sudo systemctl restart frps.service
+（5）检查服务状态
+sudo systemctl status frps.service
+
 
 # 四、Hermes轻应用（容器化配置）
 # 1.彻底清空所有旧东西（必做）
