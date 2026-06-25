@@ -1,0 +1,160 @@
+# Docker Desktop for Windows 完整安装 + 专属配置方案（适配你的 i7-8700K/16G/Win11、Bibutong 容器开发）
+一、前置系统环境检查（必须先做）
+1. 确认 CPU 虚拟化已开启
+打开任务管理器 → 性能 → CPU，查看虚拟化：已启用
+若显示禁用：重启电脑进 BIOS/UEFI，开启 Intel VT-x，保存重启
+2. 管理员 PowerShell 启用 WSL2 核心组件
+以管理员身份打开 Windows 终端 / PowerShell，逐条执行：
+powershell
+# 启用WSL子系统
+dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+# 启用虚拟机平台（WSL2依赖）
+dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+# 设置WSL默认版本为2【用手机热点可能会快很多】
+wsl --set-default-version 2
+
+执行完成重启电脑。
+3. 更新 WSL 内核（避免 Docker 启动报错）
+重启后管理员终端执行：
+powershell
+wsl --update
+
+二、下载与安装 Docker Desktop
+1. 官方安装包下载
+直链：https://desktop.docker.com/win/stable/Docker%20Desktop%20Installer.exe
+Windows下载入口
+2. 安装关键勾选（固定配置，不要修改）
+双击安装包，弹窗选项严格如下：
+✅ Use WSL 2 instead of Hyper-V（核心，必须勾选）
+❌ Allow Windows Containers（不勾选，我们全 Linux 容器）
+✅ Add shortcut to desktop（桌面快捷方式）
+点击 OK 等待安装完成，结束后选择 Close and restart 重启电脑。
+安装界面
+3. 首次启动初始化
+重启后自动打开 Docker，弹出许可协议点 Accept
+许可协议弹窗
+登录界面直接 Continue without signing in（个人开发无需注册账号）
+跳过登录
+右下角鲸鱼图标变绿色 Docker Desktop running 代表启动成功
+4. 验证基础功能
+打开终端执行测试容器：
+powershell
+docker run hello-world
+输出Hello from Docker!即安装正常。
+
+三、WSL2 资源硬限制配置（适配本机 16G 内存，核心优化）
+1. 创建 .wslconfig 全局限制文件
+管理员 PowerShell 执行创建文件：
+powershell
+notepad $env:USERPROFILE\.wslconfig
+
+粘贴下面配置（专为 16G 内存、多容器开发定制）：
+ini
+[wsl2]
+memory=8GB          # WSL最大内存8G，匹配之前部署方案
+processors=6        # i7-8700K共12线程，分配6核给Docker
+swap=0GB            # 禁用交换分区，避免磁盘卡顿
+localhostForwarding=true
+
+保存，务必确认文件后缀不是 .txt（文件夹开启 “文件扩展名” 查看）。
+
+2. 生效配置
+关闭 Docker Desktop，管理员终端执行：
+powershell
+wsl --shutdown
+重新打开 Docker，资源限制永久生效。
+
+四、Docker Desktop 可视化设置（Settings 完整分步配置）
+右键右下角鲸鱼图标 → Settings（齿轮）
+Resources资源设置页
+1. General 通用设置
+✅ Start Docker Desktop when you log in（开机自启）
+✅ Use the new WSL 2 backend（默认开启）
+❌ Send usage statistics（关闭数据上报）
+❌ Show tips（关闭弹窗提示）
+2. Resources → Advanced（磁盘镜像迁移，解决 C 盘爆满）
+本机有 3T 机械盘，将镜像 / 容器数据全部迁移至机械盘：
+Disk image location 点击 Browse，选择路径：D:\Docker\wsl-data
+勾选 Enable Resource Saver 闲置自动降资源
+点击 Apply & Restart，Docker 自动迁移全部镜像数据到 D 盘
+3. Resources → WSL Integration（WSL 集成）
+✅ Enable integration with my default WSL distro
+下方列表勾选 docker-desktop、docker-desktop-data，保存重启。
+4. Docker Engine（必配：国内镜像加速 + BuildKit 构建优化）
+左侧 Docker Engine，清空原有内容，替换完整配置：
+json
+{
+  "builder": {
+    "gc": {
+      "defaultKeepStorage": "20GB",
+      "enabled": true
+    }
+  },
+  "experimental": false,
+  "features": {
+    "buildkit": true
+  },
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-file": "3",
+    "max-size": "10m"
+  },
+  "registry-mirrors": [
+    "https://docker.m.daocloud.io",
+    "https://docker.mirrors.ustc.edu.cn",
+    "https://hub-mirror.c.163.com",
+    "https://mirror.baidubce.com"
+  ]
+}
+
+registry-mirrors：国内镜像，拉取 nginx/mysql/jdk 等极速
+buildkit=true：前端、后端构建加速
+日志限制单文件 10M、最多 3 份，防止日志占满磁盘
+点击 Apply & Restart 生效。
+5. Network 网络设置
+❌ Enable host networking（关闭，容器隔离）
+端口转发仅允许 127.0.0.1，禁止 0.0.0.0 全网暴露（匹配开发环境安全规范）
+6. Security 安全设置
+❌ Allow privileged containers（禁止特权容器，对齐生产安全策略）【暂未设置】
+关闭容器外网无限制访问
+
+五、开发挂载性能优化（解决 Windows 目录挂载卡顿、热重载失效）
+你的项目根目录：D:\crh123dexiaohao\server\
+1. Windows 文件夹权限配置
+右键 D:\crh123dexiaohao\server → 属性 → 安全
+当前用户开启完全控制权限
+关闭目录 “只读” 属性，避免容器无法写入日志、数据库数据
+
+六、配套清理与运维命令（日常开发使用）
+1. 一键清理无用镜像、容器、缓存（释放磁盘）
+powershell
+# 清理停止的容器、悬空镜像、无用网络
+docker system prune -f
+# 额外清理所有未使用镜像（谨慎执行，会重拉镜像）
+docker system prune -a -f
+2. 查看 WSL 资源占用
+powershell
+wsl --list --verbose
+3. 完全重启 Docker 环境
+powershell
+# 退出Docker Desktop图形界面后执行
+wsl --shutdown
+# 重新打开Docker Desktop
+
+七、适配 Bibutong 项目的最终校验标准
+全部配置完成后，满足以下条件即可部署项目：
+WSL2 内存上限锁定 8G，CPU 分配 6 核；
+Docker 镜像存储在 D 盘机械盘，不占用 C 盘 NVMe；
+国内镜像加速正常，拉取 nginx:1.25-alpine、mysql:8.0 秒下；
+文件挂载开启 cached 缓存，前端 dist、后端代码修改实时同步容器；
+禁止特权容器、端口仅本地回环访问，符合开发安全规范；
+BuildKit 构建开启，后端 Maven 打包、Vue 构建速度提升 50% 以上。
+八、常见报错解决
+WSL 2 installation is incomplete
+管理员终端执行 wsl --update，重启电脑。
+镜像拉取超时
+检查 Docker Engine 镜像源配置，切换中科大 / 百度镜像。
+前端热更新延迟 / 不生效
+确认挂载目录添加cached参数，文件夹取消只读。
+vmmem 内存持续占用过高
+确认.wslconfig memory=8GB，执行wsl --shutdown重启 WSL 释放内存。

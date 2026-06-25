@@ -1,9 +1,18 @@
-# 四、个人工作笔记本
+# 个人工作笔记本
 # 1.硬件：AMD Ryzen 5 PRO 4650U with Radeon Graphics 2.10 GHz,机带 RAM 8.00 GB (7.23 GB 可用);500G 硬盘
 # 2.系统：win11
 # 3.功能：
 #（1）办公：WPS、百度网盘、印象笔记、微信
 #（2）开发：VScode、微信开发者工具、git、cherry studio、Utool、Workbuddy、开发环境（Docker Desktop）、workspace
+
+# 家庭开发电脑配置
+# 1.硬件：i7-8700K、16GB DDR4 3000MHz、RTX 2070S、三星980 m.2 Nvme 1T、3T+1T 机械盘
+# 2.系统：win11
+# 3.功能：
+#（1）办公：WPS、百度网盘、印象笔记、微信
+#（2）开发：VScode、微信开发者工具、git、cherry studio、Utool、Workbuddy、开发环境（Docker Desktop）、workspace
+#（3）娱乐：暴雪、腾讯
+# 4.拓展：
 
 
 开发目录安排
@@ -96,18 +105,6 @@ WorkSpace
 # （2）资源监控：实时监控 CPU、内存、磁盘、网络负载，资源超限预警提醒；进程资源限制 限定单服务 CPU、内存占用，避免单程序耗尽资源影响整体服务
 # （3）服务状态巡检：定时检测接口连通性、数据库运行状态，异常即时告警
 # （4）日常维护：日志管理 统一日志输出目录，自动切割归档，留存故障排查记录；定期清理冗余日志、校验备份文件（配置文件、docker-compose.yml 做好备份）、优化数据库索引、排查访问异常
-
-第二、根据上面的规划，先实施已有存量Bibutong项目在本地开发环境的部署
-# 本地开发电脑的配置如下
-# 1.硬件：i7-8700K、16GB DDR4 3000MHz、RTX 2070S、三星980 m.2 Nvme 1T、3T+1T 机械盘
-# 2.系统：win11
-本地开发电脑部署存量Bibutong项目的思路如下：
-Nginx 网关容器：镜像 nginx:1.25-alpine，轻量化反向代理网关，统一处理前端静态资源、前后端接口路由分发、跨域、SSL；
-Vue 前端静态服务：分两段构建，构建阶段使用 node:18-alpine 执行 Vue-Cli 打包生成 dist；生产运行阶段复用 nginx 镜像，仅部署编译完成的静态文件，无 Node 运行环境；
-Java 业务后端容器：编译阶段基于 eclipse-temurin:21-jdk-alpine，依托项目内置 mvnw 锁定 Maven3.8.6 完成打包；运行阶段切换轻量 JRE 镜像瘦身，承载 Spring Cloud Alibaba2.5.1 微服务业务；
-AI 推理服务容器：镜像锁定 python:3.9.5-slim，搭载 Llama3.2 大模型、bge-m3 向量嵌入能力；大模型权重文件通过宿主机目录挂载，不打入镜像；
-Redis 缓存容器（存量纳入统一编排）：镜像 redis:5.0.14-alpine，匹配项目业务依赖版本，开启 RDB 持久化存储缓存数据；
-MySQL 数据库容器（存量纳入统一编排）：镜像 mysql:8.0，完美兼容 Spring Cloud Alibaba2.5.1，挂载宿主机目录持久业务数据库。
 
 
 

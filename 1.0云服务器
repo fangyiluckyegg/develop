@@ -1,0 +1,11 @@
+ssh ubuntu@118.25.129.219【!+XX笔名+XX普通密码】
+docker exec -it hermes /opt/hermes/.venv/bin/hermes --tui
+
+# 一、基本信息
+# 1.硬件：腾讯云轻量应用服务器（2核4G 6M 70G 月限流600G）
+# 2.系统：Ubuntu 22.04 server 64bit
+# 3.功能：域名承载、frp转发（frps在root用户下）、Hermes轻应用（容器化配置）
+# ssh ubuntu@118.25.129.219 【!+XX笔名+XX普通密码】
+
+# 二、域名承载配置（待补充）
+

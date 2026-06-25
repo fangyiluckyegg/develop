@@ -1,0 +1,66 @@
+# 一、frpc配置
+# 1.安装frpc
+# 登录管理员账号，下载并配置frp_0.62.1 darwin_arm64（M 系列 Mac mini）
+cd ~/frp_0.62.1_darwin_arm64
+
+# 2.配置frpc.toml
+serverAddr = "118.25.129.219"
+serverPort = 7000
+auth.token = "你的密钥"
+
+[[proxies]]
+name = "mac-ssh"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 22
+remotePort = 7004
+
+# 3.启动frpc,输 Mac管理员密码，出现start proxy success，Windows 再ssh crh123dexiaohao@118.25.129.219 -p 7004即可连通。
+sudo ./frpc -c frpc.toml
+
+# 4.设置系统 root 开机自启（/Library/LaunchDaemons 全局管理员）
+# ①移动程序到系统目录
+sudo cp -r ~/frp_0.62.1_darwin_arm64 /usr/local/frp
+# ②新建 plist（toml 路径写死）
+sudo nano /Library/LaunchDaemons/frpc.plist
+# 添加以下内容
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>frpc</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/local/frp/frpc</string>
+    <string>-c</string>
+    <string>/usr/local/frp/frpc.toml</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>/var/log/frpc.log</string>
+  <key>StandardErrorPath</key>
+  <string>/var/log/frpc.err</string>
+</dict>
+</plist>
+# Ctrl+O保存→Ctrl+X退出。
+# 赋权限 + 加载服务
+sudo chmod 644 /Library/LaunchDaemons/frpc.plist
+sudo chown root:wheel /Library/LaunchDaemons/frpc.plist
+sudo launchctl load /Library/LaunchDaemons/frpc.plist
+# 验证运行
+ps aux | grep frpc
+sudo launchctl list | grep frpc
+
+# 测试结果。远程登录服务器ssh 用户名@192.168.2.111；ssh 用户名@118.25.129.219 -p 7004
+# 终极防掉线（复制执行，永不掉线）
+# ① 禁止 Mac 休眠（最关键！）
+sudo pmset sleep 0
+sudo pmset -a disablesleep 1
+sudo pmset -a hibernatemode 0
+#重启 frpc 生效
+sudo launchctl unload /Library/LaunchDaemons/frpc.plist
+sudo launchctl load /Library/LaunchDaemons/frpc.plist
