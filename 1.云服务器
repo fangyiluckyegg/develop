@@ -67,15 +67,14 @@ docker exec -it hermes bash
 
 
 
-# 云应用服务器规划设计
-# 1.硬件：腾讯云轻量应用服务器（2核4G 6M 70G 月限流600G）【118.25.129.219】
+# 第一部分：云应用服务器规划设计
+# 一、基本信息
+# 1.硬件：腾讯云轻量应用服务器（2核4G 6M 70G 月限流600G）
 # 2.系统：Ubuntu 22.04 server 64bit
-# 3.功能：域名承载、frp转发
-# 4.拓展：后续可以试试Hermes
-frps在root用户下
-ssh ubuntu@118.25.129.219 【!+XX笔名+XX普通密码】
+# 3.功能：域名承载、frp转发（frps在root用户下）、Hermes轻应用（容器化配置）
+# ssh ubuntu@118.25.129.219 【!+XX笔名+XX普通密码】
 
-# 配置方案设计：重新整理一遍需求，具体如下：
+# 二、配置方案设计
 我有一台腾讯云轻量应用服务器（2核4G 6M 70G），系统为Ubuntu 22.04 server 64bit
 当前主要功能是作为frp转发的frps服务器端
 现计划通过docker来安装配置Hermes_agent，后续准备开发运行一些基于大模型API的AI任务
@@ -84,14 +83,30 @@ ssh ubuntu@118.25.129.219 【!+XX笔名+XX普通密码】
 第三打开Dashboard 后台配置面板
 请给出一套完整高效稳定的安装和配置方案
 
-# 具体配置方案
-# 一、彻底清空所有旧东西（必做）
-sudo docker rm -f hermes 2>/dev/null
-sudo docker system prune -a -f
-sudo rm -rf /opt/hermes ~/hermes
-sudo mkdir -p /opt/hermes
-sudo chmod 777 /opt/hermes
-sudo service docker start
+二、域名承载配置（待补充）
+
+三、frp转发（frps在root用户下）配置
+
+# 四、Hermes轻应用（容器化配置）
+# 1.彻底清空所有旧东西（必做）
+# 管理员权限实施，强制删除（-f）名为hermes的容器，如不存在也不会弹出报错 
+sudo docker rm -f hermes 2>/dev/null 
+# 管理员权限实施，强制清理（-f）全部资源（-a，需慎重，一般仅-f即可，如容器、镜像、卷、缓存、网络），回收磁盘空间，删除无用资源 
+sudo docker system prune -a -f 
+# 管理员权限实施，强制、无提示彻底删除两处 Hermes 相关目录（系统程序目录 /opt/hermes；和 当前用户个人目录 ~/hermes）
+sudo rm -rf /opt/hermes ~/hermes 
+# 管理员权限实施，安全创建 /opt/hermes 目录，重复执行不会报错，适合写进部署脚本
+sudo mkdir -p /opt/hermes 
+# 管理员权限实施，服务器上任何用户、任何进程都能对 /opt/hermes 内文件增删改查，无权限限制，挂载给 Docker 容器时不会出现权限拒绝报错
+# 注意：线上生产环境严禁长期使用 777，任何入侵的普通账号都能篡改、删除目录内配置、密钥、业务数据；
+sudo chmod 777 /opt/hermes 
+# 更安全的替代方案如下：归属当前用户，权限755（所有者完整权限，其他人只读）
+sudo chown -R $USER:$USER /opt/hermes
+sudo chmod 755 /opt/hermes
+# 如需容器写入，仅开放目录写入权限而非全局777
+sudo chmod -R u+w /opt/hermes
+# 管理员权限实施，启动docker服务；等价新版本命令sudo systemctl start docker
+sudo service docker start 
 
 # 二、拉取国内可用镜像（v0.14.0）
 sudo docker pull swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/nousresearch/hermes-agent:v2026.5.16
@@ -109,13 +124,13 @@ docker run -d \
 
 # 四、进入容器初始化 Hermes
 sudo docker exec -it hermes bash
-① 初始化（只跑一次）
+# ① 初始化（只跑一次）
 /opt/hermes/.venv/bin/hermes init
 # 退出容器
 exit
 # 查看容器是否启动成功
 docker ps
-看到 hermes 容器 UP 状态 = 正在运行！
+# 看到 hermes 容器 UP 状态 = 正在运行！
 
 # 五、配置模型
 # 进入容器初始化 Hermes
@@ -144,12 +159,10 @@ docker exec -d hermes /opt/hermes/.venv/bin/hermes dashboard --host 0.0.0.0 --po
 # 附：其他命令
 # 命令行测试聊天（TUI 界面）
 docker exec -it hermes /opt/hermes/.venv/bin/hermes --tui
-输入 /model 可随时切换双模型
+# 输入 /model 可随时切换双模型
 # 查看完整配置
 docker exec -it hermes hermes config show
 # 重启容器（如需）
 docker restart hermes
 # 杀掉旧的占用端口的进程
 pkill -f "hermes dashboard"
-
-ssh 118.25.129.219:9119

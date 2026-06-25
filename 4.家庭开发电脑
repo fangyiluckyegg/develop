@@ -186,16 +186,17 @@ json
   "features": {
     "buildkit": true
   },
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-file": "3",
+    "max-size": "10m"
+  },
   "registry-mirrors": [
+    "https://docker.m.daocloud.io",
     "https://docker.mirrors.ustc.edu.cn",
     "https://hub-mirror.c.163.com",
     "https://mirror.baidubce.com"
-  ],
-  "log-driver": "json-file",
-  "log-opts": {
-    "max-size": "10m",
-    "max-file": "3"
-  }
+  ]
 }
 
 registry-mirrors：国内镜像，拉取 nginx/mysql/jdk 等极速
@@ -340,273 +341,17 @@ Bibutong 固定使用 db9，其他新项目依次分配 db10、db11…
 关闭 Redis 持久化 AOF，仅保留 RDB 简易落盘，减少磁盘 IO
 五、完整编排配置文件
 1. docker-compose.base.yml（公共常驻中间件）
-yaml
-version: "3.8"
-# 公共常驻服务：Nginx网关、MySQL8、Redis5
-services:
-  nginx-gateway:
-    image: nginx:1.25-alpine
-    container_name: dev-nginx-gateway
-    mem_limit: 256m
-    cpus: 0.5
-    restart: always
-    volumes:
-      - ./gateway/nginx/conf.d:/etc/nginx/conf.d
-      - ./logs/nginx:/var/log/nginx
-      - ./gateway/nginx/ssl:/etc/nginx/ssl
-    ports:
-      - "127.0.0.1:80:80"
-      - "127.0.0.1:443:443"
-    networks:
-      dev-network:
-
-  mysql:
-    image: mysql:8.0
-    container_name: dev-mysql
-    mem_limit: 1g
-    cpus: 1
-    restart: always
-    volumes:
-      - ./db/mysql_data:/var/lib/mysql
-      - ./db/mysql_init:/docker-entrypoint-initdb.d
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PWD}
-      TZ: Asia/Shanghai
-    ports:
-      - "127.0.0.1:33060:3306"
-    networks:
-      dev-network:
-    command:
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
-
-  redis:
-    image: redis:5.0.14-alpine
-    container_name: dev-redis
-    mem_limit: 512m
-    cpus: 0.3
-    restart: always
-    volumes:
-      - ./db/redis_data:/data
-    command: redis-server --dbfilename dump.rdb --appendonly no
-    ports:
-      - "127.0.0.1:63790:6379"
-    networks:
-      dev-network:
-
-# 统一容器内网网络
-networks:
-  dev-network:
-    driver: bridge
-
 2. docker-compose.business-bibutong.yml（Bibutong 业务容器）
-yaml
-version: "3.8"
-services:
-  bibutong-front:
-    image: nginx:1.25-alpine
-    container_name: dev-bibutong-front
-    mem_limit: 128m
-    cpus: 0.2
-    volumes:
-      - ./web/bibutong_front/dist:/usr/share/nginx/html
-      - ./logs/bibutong-front:/var/log/nginx
-    depends_on:
-      - nginx-gateway
-    networks:
-      dev-network:
-        external: true
-
-  bibutong-backend:
-    build:
-      context: ./backend/bibutong_server
-      dockerfile: Dockerfile.dev
-    container_name: dev-bibutong-backend
-    mem_limit: 2g
-    cpus: 2
-    restart: always
-    volumes:
-      - ./logs/bibutong-backend:/app/logs
-    environment:
-      TZ: Asia/Shanghai
-      SPRING_PROFILES_ACTIVE: dev
-      # 数据库配置
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/bibutong_dev?useUnicode=true&characterEncoding=utf8mb4&serverTimezone=Asia/Shanghai
-      SPRING_DATASOURCE_USERNAME: ${BIBUTONG_DB_USER}
-      SPRING_DATASOURCE_PASSWORD: ${BIBUTONG_DB_PWD}
-      # Redis配置
-      SPRING_REDIS_HOST: redis
-      SPRING_REDIS_PORT: 3306
-      SPRING_REDIS_DATABASE: 9
-      # AI向量服务地址
-      AI_SERVICE_URL: http://llama:8000
-    depends_on:
-      - mysql
-      - redis
-      - llama
-    networks:
-      dev-network:
-        external: true
-
-  llama:
-    image: python:3.9.5-slim
-    container_name: dev-bibutong-llama
-    mem_limit: 2g
-    cpus: 2
-    volumes:
-      - ./ai_llama:/model
-      - ./logs/llama:/app/logs
-    environment:
-      MODEL_ROOT_PATH: /model
-      TZ: Asia/Shanghai
-    ports:
-      - "127.0.0.1:8000:8000"
-    networks:
-      dev-network:
-        external: true
-
-# 引用外部公共网络（base.yml中创建）
-networks:
-  dev-network:
-    external: true
-
 3. .env.dev 环境变量模板（存放敏感配置，禁止提交 Git）
-env
-# MySQL root管理员账号
-MYSQL_ROOT_PWD=Root@Dev123456
-
-# Bibutong业务数据库账号
-BIBUTONG_DB_USER=bibutong_user
-BIBUTONG_DB_PWD=BuButong@Dev789
-
-# AI向量服务密钥（按需配置）
-AI_API_TOKEN=dev_llama_token_001
-
 4. MySQL 初始化脚本 db/mysql_init/init.sql
-sql
--- 创建Bibutong开发库
-CREATE DATABASE IF NOT EXISTS bibutong_dev DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- 创建业务专用账号
-CREATE USER IF NOT EXISTS 'bibutong_user'@'%' IDENTIFIED BY 'BuButong@Dev789';
-GRANT ALL PRIVILEGES ON bibutong_dev.* TO 'bibutong_user'@'%';
-FLUSH PRIVILEGES;
-
-5. Nginx 网关路由配置 gateway/nginx/conf.d/bibutong.conf
-nginx
-server {
-    listen 80;
-    server_name local.bibutong.com;
-
-    # 前端静态资源转发
-    location / {
-        proxy_pass http://bibutong-front;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        # 开发环境禁用静态缓存
-        expires -1;
-    }
-
-    # 后端API接口路由
-    location /api/ {
-        proxy_pass http://bibutong-backend:8080/api/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        # 开发全局跨域
-        add_header Access-Control-Allow-Origin *;
-        add_header Access-Control-Allow-Methods GET,POST,PUT,DELETE,OPTIONS;
-    }
-
-    # AI向量接口转发
-    location /ai/vector/ {
-        proxy_pass http://llama:8000/vector/;
-        proxy_set_header Host $host;
-    }
-}
+5. Nginx 网关路由配置 gateway/nginx/conf.d/default.conf
 
 六、前后端 Docker 构建文件
 1. 后端 Dockerfile.dev（backend/bibutong_server/Dockerfile.dev）
-dockerfile
-# 编译阶段：完整JDK打包
-FROM eclipse-temurin:21-jdk-alpine AS builder
-WORKDIR /app
-COPY . .
-# 项目内置mvnw锁定Maven3.8.6
-RUN chmod +x ./mvnw && ./mvnw clean package -Dmaven.test.skip=true
-
-# 运行阶段：轻量化JRE瘦身镜像
-FROM eclipse-temurin:21-jre-alpine
-WORKDIR /app
-COPY --from=builder /app/target/*.jar app.jar
-# JVM内存限制适配本地开发
-ENTRYPOINT ["java","-Xmx1800M","-jar","app.jar"]
-
-2. 前端构建说明
-本地宿主机执行npm run build打包 Vue 项目，输出 dist 目录；
-dist 目录直接挂载至bibutong-front容器，无需在容器内安装 Node；
-如需快速调试：宿主机本地执行npm run serve裸机热更新，上线前再容器打包验证。
-七、运维启停脚本（scripts 目录，Windows 批处理）
-1. base_start.bat 启动常驻公共中间件（电脑开机执行一次）
-bat
-@echo off
-cd D:\crh123dexiaohao\server
-echo 启动公共Nginx、MySQL、Redis常驻服务
-docker compose -f docker-compose.base.yml --env-file .env.dev up -d
-echo 公共中间件启动完成，可执行switch_bibutong开启业务项目
-pause
-
 2. switch_bibutong.bat 一键切换至 Bibutong 项目（日常开发核心脚本）
-bat
-@echo off
-cd D:\crh123dexiaohao\server
-echo 停止所有其他业务容器
-docker compose -f docker-compose.business-bibutong.yml down
-echo 启动Bibutong前端、后端、AI向量服务
-docker compose -f docker-compose.business-bibutong.yml --env-file .env.dev up -d
-echo ==============================
-echo 当前开发项目：Bibutong（含Llama AI推理）
-echo 无需AI可执行ai_switch.bat关闭llama容器释放内存
-echo ==============================
-pause
-
 3. stop_business.bat 关闭当前业务项目，保留公共中间件
-bat
-@echo off
-cd D:\crh123dexiaohao\server
-docker compose -f docker-compose.business-bibutong.yml down
-echo Bibutong业务容器已全部停止，网关、MySQL、Redis仍常驻运行
-pause
-
 4. ai_switch.bat 按需启停 AI 容器（释放 2G 内存）
-bat
-@echo off
-cd D:\crh123dexiaohao\server
-echo 可选操作：
-echo 1、停止AI推理容器 输入 stop
-echo 2、启动AI推理容器 输入 start
-set /p op=请输入指令：
-if %op%==stop (
-    docker compose -f docker-compose.business-bibutong.yml stop llama
-    echo AI容器已关闭，释放2G内存
-)
-if %op%==start (
-    docker compose -f docker-compose.business-bibutong.yml start llama
-    echo AI向量服务已启动
-)
-pause
-
 5. backup_dev.bat 开发数据定时备份脚本
-bat
-@echo off
-cd D:\crh123dexiaohao\server
-set dt=%date:~0,4%%date:~5,2%%date:~8,2%
-:: 备份MySQL开发库
-docker exec dev-mysql mysqldump -uroot -pRoot@Dev123456 bibutong_dev > backup/bibutong_dev_%dt%.sql
-:: 备份编排与Nginx配置
-xcopy gateway backup/gateway_%dt% /E /I /Y
-xcopy *.yml backup/compose_%dt% /Y
-echo 备份文件存放至 ./backup 目录
-pause
 
 八、标准完整部署操作流程
 步骤 1：环境初始化（首次部署执行）
@@ -617,6 +362,7 @@ pause
 配置 Docker Desktop WSL 内存 8G，重启 Docker；
 运行scripts/base_start.bat，启动 Nginx、MySQL、Redis 公共容器；
 Navicat 连接 127.0.0.1:33060，确认bibutong_dev库自动创建完成。
+
 步骤 2：启动 Bibutong 完整业务集群
 执行scripts/switch_bibutong.bat，自动拉起前端、后端、AI 容器。
 查看容器状态：docker ps，确认 4 个容器全部 running；
@@ -624,18 +370,21 @@ Navicat 连接 127.0.0.1:33060，确认bibutong_dev库自动创建完成。
 访问 http://local.bibutong.com 验证前端页面；
 调用 /api 接口测试后端数据库读写；
 访问 8000 端口验证向量 AI 推理服务。
+
 步骤 3：日常开发使用规范
 仅调试页面：可宿主机npm run serve裸机热更新，上线前容器打包验证；
 无需 AI 功能：执行ai_switch.bat stop关闭 llama 容器，大幅降低内存占用；
 切换其他项目：执行新项目专属 switch 脚本，自动关停 Bibutong 业务容器；
 每日开发结束：执行stop_business.bat关闭业务容器，公共中间件可常驻；
 每周执行backup_dev.bat备份开发数据库与配置。
+
 九、开发环境与 Mac Mini 生产环境无缝迁移方案
 镜像、版本统一：Nginx、MySQL、Redis、JDK、Node、Python 镜像版本完全一致；
 编排文件复用：仅替换.env环境变量文件，compose 业务层无需修改；
 数据迁移：本地backup_dev.bat导出 bibutong_dev SQL，上传至 Mac Mini 导入生产库bibutong_db；
 构建产物通用：本地打包 dist 静态文件、后端 Jar 包，直接同步至家庭服务器部署；
 运维脚本统一：备份、日志清理、容器启停逻辑完全对齐，上线无额外适配工作。
+
 十、安全管控规范（本地对齐生产安全标准）
 敏感账号密码存放.env.dev，.gitignore屏蔽该文件，禁止提交代码仓库；
 MySQL、Redis 仅本地回环访问，禁止 0.0.0.0 监听；
@@ -643,6 +392,7 @@ MySQL、Redis 仅本地回环访问，禁止 0.0.0.0 监听；
 开发账号密码复杂度与生产保持一致，杜绝弱密码；
 统一日志目录自动归档，日志输出自动过滤密钥、数据库账号等敏感信息；
 模型权重目录设置只读权限，防止误删大模型文件。
+
 十一、内存优化补充方案（16G 内存极限流畅优化）
 Docker WSL 内存锁定 8G，不分配更高；
 后端 JVM 固定-Xmx1800M，不允许堆内存无限制扩张；
@@ -651,10 +401,3 @@ Redis 关闭 AOF 持久化，仅保留轻量 RDB；
 MySQL 开发环境关闭慢查询日志、大量索引缓存；
 Windows 关闭多余浏览器标签、IDE 无关插件，减少宿主机内存占用；
 定期执行日志清理脚本，避免日志文件占用磁盘与内存缓存。
-快速
-PPT 生成
-AI 表格
-图像生成
-帮我写作
-视频生成
-更多
