@@ -1,3 +1,41 @@
+Hermes桌面端设置
+http://118.25.129.219:9119
+qcTGoP/sW86/7s5lu5gL8w5l1AmZr9zz1RNTUaPPT6c=
+
+sudo bash -c 'cat >> /root/.hermes/.env <<EOF
+# 网页&桌面端Basic登录账号密码
+HERMES_DASHBOARD_BASIC_AUTH_USERNAME=admin
+HERMES_DASHBOARD_BASIC_AUTH_PASSWORD=admin123
+# 会话持久签名密钥（重启服务登录不失效）
+HERMES_DASHBOARD_BASIC_AUTH_SECRET=$(openssl rand -base64 32)
+# 桌面远程网关固定静态Token（直接填桌面端会话Token输入框）
+HERMES_DASHBOARD_SESSION_TOKEN=$(openssl rand -base64 32)
+EOF'
+
+# 锁定文件权限，防止泄露密码
+sudo chmod 600 /root/.hermes/.env
+
+# 查看生成好的静态 Token（复制保存，后面填桌面端）
+sudo cat /root/.hermes/.env | grep HERMES_DASHBOARD_SESSION_TOKEN
+
+# .env文件
+sudo docker exec -it hermes cat /opt/data/.env
+
+sudo docker exec -it hermes cat /opt/data/config.yaml
+
+
+# 检查容器内 dashboard 进程
+sudo docker exec hermes ps aux | grep dashboard
+
+# 清理旧进程
+sudo docker exec -d hermes bash -c "pkill -f 'hermes dashboard'"
+# 重新加载容器内/opt/data/.env（对应宿主机/root/.hermes/.env）启动面板
+sudo docker exec -d hermes bash -c "source /opt/data/.env && /opt/hermes/.venv/bin/hermes dashboard --no-open --host 0.0.0.0 --port 9119 --insecure"
+
+
+
+
+
 # Hermes轻应用（容器化配置）
 我有一台腾讯云轻量应用服务器（2核4G 6M 70G），系统为Ubuntu 22.04 server 64bit
 当前主要功能是作为frp转发的frps服务器端
@@ -75,6 +113,10 @@ EOF
 exit
 # 启动 9119 面板（最终版）
 docker exec -d hermes /opt/hermes/.venv/bin/hermes dashboard --host 0.0.0.0 --port 9119 --insecure
+
+sudo docker exec -d hermes bash -c "source /opt/data/.env && /opt/hermes/.venv/bin/hermes dashboard --no-open --host 0.0.0.0 --port 9119 --insecure"
+
+
 
 # 附：其他命令
 # 命令行测试聊天（TUI 界面）

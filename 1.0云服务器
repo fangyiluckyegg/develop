@@ -1,5 +1,18 @@
 ssh ubuntu@118.25.129.219【!+XX笔名+XX普通密码】
 docker exec -it hermes /opt/hermes/.venv/bin/hermes --tui
+docker exec -it hermes /opt/hermes/.venv/bin/hermes version
+docker exec -it hermes /opt/hermes/.venv/bin/hermes doctor
+
+cat >> ~/.hermes/.env <<'EOF'
+HERMES_DASHBOARD_BASIC_AUTH_USERNAME=admin
+HERMES_DASHBOARD_BASIC_AUTH_PASSWORD=admin123
+# 推荐：设置一个稳定的签名密钥，避免重启后登录失效
+# 不设置的话每次启动会生成随机密钥，重启后需要重新登录
+HERMES_DASHBOARD_BASIC_AUTH_SECRET=$(openssl rand -base64 32)
+EOF
+
+chmod 600 ~/.hermes/.env
+
 
 # 一、基本信息
 # 1.硬件：腾讯云轻量应用服务器（2核4G 6M 70G 月限流600G）
